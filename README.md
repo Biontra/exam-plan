@@ -2,7 +2,7 @@
 
 Exam Plan turns a list of exams into a day-by-day study schedule. You enter each exam's date and difficulty plus the hours you can study per day, and it shows countdown cards and a plan up to your last exam.
 
-Live demo: <LIVE_URL>
+Live demo: https://exam.kaanyunusemre.com
 
 ## How to use
 
