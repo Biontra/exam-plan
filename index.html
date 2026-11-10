@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exam Plan</title>
+  <meta name="description" content="Add your exams, set how many hours you can study per day, and get a day-by-day study plan with countdowns. Runs in your browser; nothing is uploaded.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#070b14">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070b14'/%3E%3Cpath d='M7 9h18v16H7z' fill='none' stroke='%233de8ff' stroke-width='2'/%3E%3Cpath d='M7 14h18' stroke='%23ffb340' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+
+  <header class="site">
+    <div class="wrap head-row">
+      <div>
+        <h1 data-i18n="title">Exam Plan</h1>
+        <p class="lead" data-i18n="lead">Add your exams and the hours you can study each day. Get a day-by-day plan up to your last exam.</p>
+      </div>
+      <div class="lang" role="group" data-i18n-aria-label="lang.label" aria-label="Language">
+        <button type="button" id="lang-en" data-lang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" id="lang-tr" data-lang="tr" aria-pressed="false" lang="tr">TR</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+
+    <section id="empty" class="panel empty" aria-labelledby="empty-title" hidden>
+      <h2 id="empty-title" data-i18n="empty.title">Start here</h2>
+      <ol class="steps">
+        <li data-i18n="empty.step1">Add each exam with its date and how hard it is.</li>
+        <li data-i18n="empty.step2">Set how many hours you can study per day.</li>
+        <li data-i18n="empty.step3">Read your plan, then download it as a calendar file or print it.</li>
+      </ol>
+      <button type="button" class="btn primary" id="sample-btn" data-i18n="empty.sample">Try with sample exams</button>
+    </section>
+
+    <section class="panel" aria-labelledby="form-title">
+      <h2 id="form-title" data-i18n="form.add">Add an exam</h2>
+      <form id="exam-form" novalidate autocomplete="off">
+        <div class="grid">
+          <div class="field span2">
+            <label for="f-name" data-i18n="form.name">Course name</label>
+            <input id="f-name" name="name" type="text" maxlength="80" aria-describedby="err-name" data-i18n-placeholder="form.name.ph" placeholder="e.g. Calculus II">
+            <p class="err" id="err-name"></p>
+          </div>
+          <div class="field">
+            <label for="f-date" data-i18n="form.date">Exam date</label>
+            <input id="f-date" name="date" type="date" aria-describedby="err-date">
+            <p class="err" id="err-date"></p>
+          </div>
+          <div class="field">
+            <label for="f-time"><span data-i18n="form.time">Time</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+            <input id="f-time" name="time" type="time" aria-describedby="err-time">
+            <p class="err" id="err-time"></p>
+          </div>
+          <div class="field">
+            <label for="f-diff" data-i18n="form.difficulty">Difficulty</label>
+            <select id="f-diff" name="difficulty" aria-describedby="err-difficulty">
+              <option value="easy" data-i18n="diff.easy">Easy</option>
+              <option value="medium" data-i18n="diff.medium" selected>Medium</option>
+              <option value="hard" data-i18n="diff.hard">Hard</option>
+            </select>
+            <p class="err" id="err-difficulty"></p>
+          </div>
+          <div class="field">
+            <label for="f-topics"><span data-i18n="form.topics">Number of topics</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+            <input id="f-topics" name="topics" type="number" inputmode="numeric" min="1" max="50" step="1" aria-describedby="hint-topics err-topics">
+            <p class="hint" id="hint-topics" data-i18n="form.topics.hint">More topics means more study hours.</p>
+            <p class="err" id="err-topics"></p>
+          </div>
+        </div>
+        <div class="row">
+          <button type="submit" class="btn primary" id="submit-btn" data-i18n="form.addBtn">Add exam</button>
+          <button type="button" class="btn" id="cancel-btn" data-i18n="form.cancel" hidden>Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" aria-labelledby="hours-title">
+      <h2 id="hours-title" data-i18n="hours.title">Study time per day</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="h-weekday" data-i18n="hours.weekday">Hours per day</label>
+          <input id="h-weekday" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekday" autocomplete="off">
+          <p class="err" id="err-weekday"></p>
+        </div>
+        <div class="field">
+          <label for="h-weekend"><span data-i18n="hours.weekend">Hours on weekends</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+          <input id="h-weekend" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekend" autocomplete="off" data-i18n-placeholder="hours.weekend.ph" placeholder="same as weekdays">
+          <p class="err" id="err-weekend"></p>
+        </div>
+      </div>
+      <p class="hint" id="hint-hours" data-i18n="hours.hint">Use steps of 0.5, from 0 to 23.5. Plans are saved in this browser only.</p>
+    </section>
+
+    <section id="exams-section" aria-labelledby="exams-title" hidden>
+      <h2 id="exams-title" data-i18n="exams.title">Your exams</h2>
+      <ul id="exam-list" class="cards"></ul>
+      <div id="past-wrap" hidden>
+        <h3 data-i18n="exams.past">Past exams</h3>
+        <ul id="past-list" class="cards"></ul>
+      </div>
+    </section>
+
+    <section id="plan-section" aria-labelledby="plan-title" hidden>
+      <div class="plan-head">
+        <h2 id="plan-title" data-i18n="plan.title">Study plan</h2>
+        <div class="row noprint">
+          <a class="btn" id="ics-link" download="exam-plan.ics" href="#" data-i18n="plan.ics">Download .ics</a>
+          <button type="button" class="btn" id="print-btn" data-i18n="plan.print">Print</button>
+        </div>
+      </div>
+      <p class="print-only" id="print-meta"></p>
+      <div id="plan-live" aria-live="polite" aria-atomic="false">
+        <p id="plan-summary" class="summary"></p>
+        <div id="plan-warnings"></div>
+      </div>
+      <h3 data-i18n="plan.perExam">Hours per exam</h3>
+      <ul id="exam-hours" class="hours-list"></ul>
+      <h3 data-i18n="plan.perDay">Day by day</h3>
+      <ol id="day-list" class="days"></ol>
+    </section>
+  </main>
+
+  <footer class="site foot">
+    <div class="wrap">
+      <p data-i18n="footer">Your exams stay in this browser (localStorage). No account, no server, no tracking.</p>
+      <p id="storage-note" class="warn-text" hidden data-i18n="storage.off">Browser storage is not available, so your data will be lost when you close this page.</p>
+    </div>
+  </footer>
+
+  <div id="status" class="status noprint" role="status" aria-live="polite" aria-atomic="true">
+    <span id="status-text"></span>
+    <button type="button" class="btn small" id="undo-btn" hidden data-i18n="undo">Undo</button>
+  </div>
+
+  <script src="plan.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
