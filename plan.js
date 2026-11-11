@@ -547,9 +547,9 @@
    */
   function sampleData(todayStr, names, topics) {
     var rows = [
-      { off: 6, difficulty: 'hard', topics: 6, time: '10:00', ticked: 3, log: { '-3': 1.5, '-2': 2, '-1': 1.5 } },
+      { off: 7, difficulty: 'hard', topics: 5, time: '10:00', ticked: 3, log: { '-3': 1.5, '-2': 2, '-1': 1.5 } },
       { off: 9, difficulty: 'medium', topics: 5, time: '', ticked: 2, log: { '-3': 1.5, '-1': 1.5 } },
-      { off: 12, difficulty: 'hard', topics: null, time: '14:00', ticked: 1, log: { '-2': 1 } },
+      { off: 12, difficulty: 'hard', topics: 3, time: '14:00', ticked: 1, log: { '-2': 1 } },
       { off: 16, difficulty: 'easy', topics: null, time: '', ticked: 0, log: {} }
     ];
     var exams = [], progress = {};
