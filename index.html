@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Exam Plan</title>
-  <meta name="description" content="Add your exams, set how many hours you can study per day, and get a day-by-day study plan with countdowns. Runs in your browser; nothing is uploaded.">
+  <meta name="description" content="Exam countdown, a study plan that re-plans itself from the hours you log, topic checklists and a focus timer. Runs in your browser; nothing is uploaded.">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#070b14">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070b14'/%3E%3Cpath d='M7 9h18v16H7z' fill='none' stroke='%233de8ff' stroke-width='2'/%3E%3Cpath d='M7 14h18' stroke='%23ffb340' stroke-width='2'/%3E%3C/svg%3E">
@@ -13,14 +13,17 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-tab="today">
   <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
 
-  <header class="site">
+  <header class="topbar">
     <div class="wrap head-row">
-      <div>
-        <h1 data-i18n="title">Exam Plan</h1>
-        <p class="lead" data-i18n="lead">Add your exams and the hours you can study each day. Get a day-by-day plan up to your last exam.</p>
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <div>
+          <h1 data-i18n="title">Exam Plan</h1>
+          <p class="eyebrow" data-i18n="brand.sub">Mission control for exam weeks</p>
+        </div>
       </div>
       <div class="lang" role="group" data-i18n-aria-label="lang.label" aria-label="Language">
         <button type="button" id="lang-en" data-lang="en" aria-pressed="true" lang="en">EN</button>
@@ -29,120 +32,246 @@
     </div>
   </header>
 
-  <main id="main" class="wrap">
+  <main id="main" class="wrap dash">
 
-    <section id="empty" class="panel empty" aria-labelledby="empty-title" hidden>
-      <h2 id="empty-title" data-i18n="empty.title">Start here</h2>
-      <ol class="steps">
-        <li data-i18n="empty.step1">Add each exam with its date and how hard it is.</li>
-        <li data-i18n="empty.step2">Set how many hours you can study per day.</li>
-        <li data-i18n="empty.step3">Read your plan, then download it as a calendar file or print it.</li>
-      </ol>
-      <button type="button" class="btn primary" id="sample-btn" data-i18n="empty.sample">Try with sample exams</button>
+    <div class="row-top">
+      <section id="mission" class="panel hero" data-tabs="today" aria-labelledby="mission-eyebrow">
+        <p class="eyebrow cyan" id="mission-eyebrow">Next mission</p>
+        <div id="mission-body" class="hero-body"></div>
+      </section>
+
+      <section id="stats" class="panel" data-tabs="today" aria-labelledby="stats-title">
+        <h2 id="stats-title" class="sr-only" data-i18n="stats.title">Summary</h2>
+        <ul id="stats-list" class="tiles"></ul>
+      </section>
+    </div>
+
+    <section id="timeline-sec" class="panel" data-tabs="plan" aria-labelledby="timeline-title">
+      <h2 id="timeline-title" data-i18n="timeline.title">Timeline</h2>
+      <div id="timeline-body"></div>
     </section>
 
-    <section class="panel" aria-labelledby="form-title">
-      <h2 id="form-title" data-i18n="form.add">Add an exam</h2>
-      <form id="exam-form" novalidate autocomplete="off">
-        <div class="grid">
-          <div class="field span2">
-            <label for="f-name" data-i18n="form.name">Course name</label>
-            <input id="f-name" name="name" type="text" maxlength="80" aria-describedby="err-name" data-i18n-placeholder="form.name.ph" placeholder="e.g. Calculus II">
-            <p class="err" id="err-name"></p>
+    <div class="cols">
+      <div class="col-a">
+        <section id="today-sec" class="panel" data-tabs="today" aria-labelledby="today-title">
+          <div class="sec-head">
+            <div>
+              <h2 id="today-title" data-i18n="today.title">Today</h2>
+              <p class="eyebrow" id="today-date"></p>
+            </div>
+            <span class="sec-sum" id="today-sum"></span>
           </div>
-          <div class="field">
-            <label for="f-date" data-i18n="form.date">Exam date</label>
-            <input id="f-date" name="date" type="date" aria-describedby="err-date">
-            <p class="err" id="err-date"></p>
-          </div>
-          <div class="field">
-            <label for="f-time"><span data-i18n="form.time">Time</span> <span class="opt" data-i18n="optional">(optional)</span></label>
-            <input id="f-time" name="time" type="time" aria-describedby="err-time">
-            <p class="err" id="err-time"></p>
-          </div>
-          <div class="field">
-            <label for="f-diff" data-i18n="form.difficulty">Difficulty</label>
-            <select id="f-diff" name="difficulty" aria-describedby="err-difficulty">
-              <option value="easy" data-i18n="diff.easy">Easy</option>
-              <option value="medium" data-i18n="diff.medium" selected>Medium</option>
-              <option value="hard" data-i18n="diff.hard">Hard</option>
-            </select>
-            <p class="err" id="err-difficulty"></p>
-          </div>
-          <div class="field">
-            <label for="f-topics"><span data-i18n="form.topics">Number of topics</span> <span class="opt" data-i18n="optional">(optional)</span></label>
-            <input id="f-topics" name="topics" type="number" inputmode="numeric" min="1" max="50" step="1" aria-describedby="hint-topics err-topics">
-            <p class="hint" id="hint-topics" data-i18n="form.topics.hint">More topics means more study hours.</p>
-            <p class="err" id="err-topics"></p>
-          </div>
-        </div>
-        <div class="row">
-          <button type="submit" class="btn primary" id="submit-btn" data-i18n="form.addBtn">Add exam</button>
-          <button type="button" class="btn" id="cancel-btn" data-i18n="form.cancel" hidden>Cancel</button>
-        </div>
-      </form>
-    </section>
+          <p id="today-msg" class="note" hidden></p>
+          <ul id="today-list" class="blocks"></ul>
+        </section>
 
-    <section class="panel" aria-labelledby="hours-title">
-      <h2 id="hours-title" data-i18n="hours.title">Study time per day</h2>
-      <div class="grid">
-        <div class="field">
-          <label for="h-weekday" data-i18n="hours.weekday">Hours per day</label>
-          <input id="h-weekday" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekday" autocomplete="off">
-          <p class="err" id="err-weekday"></p>
-        </div>
-        <div class="field">
-          <label for="h-weekend"><span data-i18n="hours.weekend">Hours on weekends</span> <span class="opt" data-i18n="optional">(optional)</span></label>
-          <input id="h-weekend" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekend" autocomplete="off" data-i18n-placeholder="hours.weekend.ph" placeholder="same as weekdays">
-          <p class="err" id="err-weekend"></p>
-        </div>
+        <section id="plan-section" class="panel" data-tabs="plan" aria-labelledby="plan-title">
+          <div class="plan-head">
+            <h2 id="plan-title" data-i18n="plan.title">Study plan</h2>
+            <div class="row noprint">
+              <a class="btn" id="ics-link" download="exam-plan.ics" href="#" data-i18n="plan.ics">Download .ics</a>
+              <button type="button" class="btn" id="print-btn" data-i18n="plan.print">Print</button>
+            </div>
+          </div>
+          <p class="print-only" id="print-meta"></p>
+          <p id="plan-empty" class="note" data-i18n="plan.empty">Your plan appears here once you add an exam.</p>
+          <div id="plan-body">
+            <div id="plan-live" aria-live="polite" aria-atomic="false">
+              <p id="plan-summary" class="summary"></p>
+              <div id="plan-warnings"></div>
+            </div>
+            <h3 data-i18n="plan.perExam">Hours per exam</h3>
+            <ul id="exam-hours" class="hours-list"></ul>
+            <h3 data-i18n="plan.perDay">Day by day</h3>
+            <ol id="day-list" class="days"></ol>
+          </div>
+        </section>
       </div>
-      <p class="hint" id="hint-hours" data-i18n="hours.hint">Use steps of 0.5, from 0 to 23.5. Plans are saved in this browser only.</p>
-    </section>
 
-    <section id="exams-section" aria-labelledby="exams-title" hidden>
-      <h2 id="exams-title" data-i18n="exams.title">Your exams</h2>
-      <ul id="exam-list" class="cards"></ul>
-      <div id="past-wrap" hidden>
-        <h3 data-i18n="exams.past">Past exams</h3>
-        <ul id="past-list" class="cards"></ul>
-      </div>
-    </section>
+      <div class="col-b">
+        <section id="exams-sec" class="panel" data-tabs="exams" aria-labelledby="exams-title">
+          <h2 id="exams-title" data-i18n="exams.title">Your exams</h2>
+          <div id="exams-empty" class="note">
+            <p data-i18n="exams.empty">No exams yet. Add one below, or look around with sample data.</p>
+            <button type="button" class="btn primary" id="exams-sample" data-i18n="empty.sample">Try with sample exams</button>
+          </div>
+          <ul id="exam-list" class="xcards"></ul>
+          <div id="past-wrap" hidden>
+            <h3 data-i18n="exams.past">Past exams</h3>
+            <ul id="past-list" class="xcards"></ul>
+          </div>
+        </section>
 
-    <section id="plan-section" aria-labelledby="plan-title" hidden>
-      <div class="plan-head">
-        <h2 id="plan-title" data-i18n="plan.title">Study plan</h2>
-        <div class="row noprint">
-          <a class="btn" id="ics-link" download="exam-plan.ics" href="#" data-i18n="plan.ics">Download .ics</a>
-          <button type="button" class="btn" id="print-btn" data-i18n="plan.print">Print</button>
-        </div>
+        <section id="form-panel" class="panel" data-tabs="exams" aria-labelledby="form-title">
+          <h2 id="form-title" data-i18n="form.add">Add an exam</h2>
+          <form id="exam-form" novalidate autocomplete="off">
+            <div class="grid">
+              <div class="field span2">
+                <label for="f-name" data-i18n="form.name">Course name</label>
+                <input id="f-name" name="name" type="text" maxlength="80" aria-describedby="err-name" data-i18n-placeholder="form.name.ph" placeholder="e.g. Calculus II">
+                <p class="err" id="err-name"></p>
+              </div>
+              <div class="field">
+                <label for="f-date" data-i18n="form.date">Exam date</label>
+                <input id="f-date" name="date" type="date" aria-describedby="err-date">
+                <p class="err" id="err-date"></p>
+              </div>
+              <div class="field">
+                <label for="f-time"><span data-i18n="form.time">Time</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+                <input id="f-time" name="time" type="time" aria-describedby="err-time">
+                <p class="err" id="err-time"></p>
+              </div>
+              <div class="field">
+                <label for="f-diff" data-i18n="form.difficulty">Difficulty</label>
+                <select id="f-diff" name="difficulty" aria-describedby="err-difficulty">
+                  <option value="easy" data-i18n="diff.easy">Easy</option>
+                  <option value="medium" data-i18n="diff.medium" selected>Medium</option>
+                  <option value="hard" data-i18n="diff.hard">Hard</option>
+                </select>
+                <p class="err" id="err-difficulty"></p>
+              </div>
+              <div class="field">
+                <label for="f-topics"><span data-i18n="form.topics">Number of topics</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+                <input id="f-topics" name="topics" type="number" inputmode="numeric" min="1" max="50" step="1" aria-describedby="hint-topics err-topics">
+                <p class="hint" id="hint-topics" data-i18n="form.topics.hint">More topics means more study hours.</p>
+                <p class="err" id="err-topics"></p>
+              </div>
+            </div>
+            <div class="row">
+              <button type="submit" class="btn primary" id="submit-btn" data-i18n="form.addBtn">Add exam</button>
+              <button type="button" class="btn" id="cancel-btn" data-i18n="form.cancel" hidden>Cancel</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="settings-sec" class="panel" data-tabs="settings" aria-labelledby="hours-title">
+          <h2 id="hours-title" data-i18n="hours.title">Study time per day</h2>
+          <div class="grid">
+            <div class="field">
+              <label for="h-weekday" data-i18n="hours.weekday">Hours per day</label>
+              <input id="h-weekday" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekday" autocomplete="off">
+              <p class="err" id="err-weekday"></p>
+            </div>
+            <div class="field">
+              <label for="h-weekend"><span data-i18n="hours.weekend">Hours on weekends</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+              <input id="h-weekend" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekend" autocomplete="off" data-i18n-placeholder="hours.weekend.ph" placeholder="same as weekdays">
+              <p class="err" id="err-weekend"></p>
+            </div>
+          </div>
+          <p class="hint" id="hint-hours" data-i18n="hours.hint">Use steps of 0.5, from 0 to 23.5.</p>
+
+          <h2 class="h2-gap" data-i18n="set.focus.title">Focus timer</h2>
+          <div class="field">
+            <label for="set-focus"><span data-i18n="set.focus.len">Focus length</span>: <output id="set-focus-out" for="set-focus">25 min</output></label>
+            <input id="set-focus" type="range" min="15" max="50" step="5" value="25">
+            <p class="hint" data-i18n="set.focus.hint">Breaks last 5 minutes. A finished session adds its time to the block.</p>
+          </div>
+          <label class="switch" for="set-sound">
+            <input id="set-sound" type="checkbox" checked>
+            <span data-i18n="set.sound">Play a short sound when a session ends</span>
+          </label>
+
+          <h2 class="h2-gap" data-i18n="backup.title">Back up and restore</h2>
+          <p class="hint" data-i18n="backup.hint">Save your exams, topics and logged hours as a JSON file, or load one. Nothing leaves this browser.</p>
+          <div class="row">
+            <button type="button" class="btn" id="export-btn" data-i18n="backup.export">Export JSON</button>
+            <button type="button" class="btn" id="import-btn" data-i18n="backup.import">Import JSON</button>
+            <input type="file" id="import-file" accept=".json,application/json" hidden>
+          </div>
+          <div id="import-confirm" class="note confirm" hidden>
+            <p id="import-text"></p>
+            <div class="row">
+              <button type="button" class="btn primary" id="import-yes" data-i18n="backup.replace">Replace my data</button>
+              <button type="button" class="btn" id="import-no" data-i18n="form.cancel">Cancel</button>
+            </div>
+          </div>
+          <p id="backup-msg" class="msg" role="status" aria-live="polite"></p>
+
+          <h2 class="h2-gap" data-i18n="guide.title">Guide</h2>
+          <button type="button" class="btn" id="guide-btn" data-i18n="guide.again">Show the quick guide again</button>
+        </section>
       </div>
-      <p class="print-only" id="print-meta"></p>
-      <div id="plan-live" aria-live="polite" aria-atomic="false">
-        <p id="plan-summary" class="summary"></p>
-        <div id="plan-warnings"></div>
-      </div>
-      <h3 data-i18n="plan.perExam">Hours per exam</h3>
-      <ul id="exam-hours" class="hours-list"></ul>
-      <h3 data-i18n="plan.perDay">Day by day</h3>
-      <ol id="day-list" class="days"></ol>
-    </section>
+    </div>
   </main>
 
-  <footer class="site foot">
+  <footer class="foot">
     <div class="wrap">
       <p data-i18n="footer">Your exams stay in this browser (localStorage). No account, no server, no tracking.</p>
       <p id="storage-note" class="warn-text" hidden data-i18n="storage.off">Browser storage is not available, so your data will be lost when you close this page.</p>
     </div>
   </footer>
 
+  <nav class="tabbar noprint" data-i18n-aria-label="tabs.label" aria-label="Sections">
+    <button type="button" data-tab="today" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span data-i18n="tab.today">Today</span></button>
+    <button type="button" data-tab="plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span data-i18n="tab.plan">Plan</span></button>
+    <button type="button" data-tab="exams"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5" width="15" height="15" rx="2"/><path d="M4.5 10h15M9 3.5v3M15 3.5v3"/></svg><span data-i18n="tab.exams">Exams</span></button>
+    <button type="button" data-tab="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h9M18 7h1M5 17h2M11 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span data-i18n="tab.settings">Settings</span></button>
+  </nav>
+
   <div id="status" class="status noprint" role="status" aria-live="polite" aria-atomic="true">
     <span id="status-text"></span>
     <button type="button" class="btn small" id="undo-btn" hidden data-i18n="undo">Undo</button>
   </div>
 
+  <!-- focus mode -->
+  <div id="focus" class="overlay focus" role="dialog" aria-modal="true" aria-labelledby="focus-title" hidden data-phase="ready" data-running="false">
+    <div class="overlay-inner">
+      <button type="button" class="btn focus-x" id="focus-close" data-i18n-aria-label="focus.close" aria-label="End session and close">×</button>
+      <p class="eyebrow cyan" id="focus-mode">Focus</p>
+      <h2 id="focus-title"></h2>
+      <div class="focus-ring">
+        <svg viewBox="0 0 300 300" aria-hidden="true">
+          <circle cx="150" cy="150" r="130" class="f-bg"/>
+          <circle id="focus-arc" cx="150" cy="150" r="130" class="f-fg" transform="rotate(-90 150 150)"/>
+          <text id="focus-time" x="150" y="150" text-anchor="middle" dominant-baseline="central">25:00</text>
+        </svg>
+      </div>
+      <div id="focus-len" class="stepper" role="group" data-i18n-aria-label="focus.lenLabel" aria-label="Session length">
+        <button type="button" class="btn step" id="len-minus" data-i18n-aria-label="focus.shorter" aria-label="Shorter">−5</button>
+        <span id="len-val">25 min</span>
+        <button type="button" class="btn step" id="len-plus" data-i18n-aria-label="focus.longer" aria-label="Longer">+5</button>
+      </div>
+      <p id="focus-hint" class="hint"></p>
+      <p id="focus-logged" class="logged"></p>
+      <div class="row center">
+        <button type="button" class="btn primary big" id="focus-main">Begin</button>
+        <button type="button" class="btn" id="focus-end" data-i18n="focus.end">End and log</button>
+        <button type="button" class="btn" id="focus-skip" data-i18n="focus.skip" hidden>Skip break</button>
+        <button type="button" class="btn" id="focus-sound" aria-pressed="true">Sound on</button>
+      </div>
+      <p id="focus-sr" class="sr-only" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <!-- first-run guide -->
+  <div id="guide" class="overlay guide" role="dialog" aria-modal="true" aria-labelledby="ob-title" hidden>
+    <div class="overlay-inner">
+      <p class="eyebrow cyan" id="ob-count"></p>
+      <div id="ob-step-0">
+        <h2 id="ob-title" data-i18n="ob.1.title">Add your exams</h2>
+        <p data-i18n="ob.1.text">Each exam gets a date, a difficulty and, if you like, a topic checklist. The countdown and the timeline start right away.</p>
+      </div>
+      <div id="ob-step-1" hidden>
+        <h2 data-i18n="ob.2.title">Log what you study</h2>
+        <p data-i18n="ob.2.text">The Today tab lists your blocks. Tick a block done, add 0.5 hours at a time, or start a focus timer that logs the time for you.</p>
+      </div>
+      <div id="ob-step-2" hidden>
+        <h2 data-i18n="ob.3.title">The plan follows you</h2>
+        <p data-i18n="ob.3.text">Every time you open the app, the hours you have not done yet are spread over the days that are left. Miss a day and the plan adjusts.</p>
+      </div>
+      <div id="ob-dots" class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="row">
+        <button type="button" class="btn" id="ob-back" data-i18n="ob.back" hidden>Back</button>
+        <button type="button" class="btn primary" id="ob-next" data-i18n="ob.next">Next</button>
+        <button type="button" class="btn primary" id="ob-sample" data-i18n="empty.sample" hidden>Try with sample exams</button>
+        <button type="button" class="btn" id="ob-empty" data-i18n="ob.empty" hidden>Start empty</button>
+        <button type="button" class="btn ghost" id="ob-skip" data-i18n="ob.skip">Skip</button>
+      </div>
+    </div>
+  </div>
+
   <script src="plan.js"></script>
   <script src="i18n.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
