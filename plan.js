@@ -204,8 +204,9 @@
    *  - A day never gets more than its daily hours. What does not fit is
    *    reported as a shortage.
    */
-  function buildPlan(exams, settings, todayStr) {
+  function buildPlan(exams, settings, todayStr, progress) {
     var today = parseDate(todayStr);
+    var withProgress = !!progress && typeof progress === 'object';
     var plan = { today: todayStr, days: [], exams: [], skipped: [], shortages: [], plannedHours: 0, neededHours: 0 };
     if (today === null || !Array.isArray(exams)) return plan;
     settings = settings || {};
@@ -218,11 +219,13 @@
       if (d < today) { plan.skipped.push({ id: e.id, name: e.name, reason: 'past' }); return; }
       if (d === today) { plan.skipped.push({ id: e.id, name: e.name, reason: 'today' }); return; }
       var need = neededSlots(e);
+      var done = withProgress ? progressSlots(progress, e.id, today) : { before: 0, today: 0, total: 0 };
       var reserve = Math.min(need, Math.max(1, Math.ceil(need * 0.25)));
       active.push({
         id: e.id, name: normalizeName(e.name), date: e.date, time: e.time || '', d: d,
         difficulty: e.difficulty, weight: (DIFFICULTY[e.difficulty] || DIFFICULTY.medium).weight,
-        need: need, left: need, reserve: reserve
+        need: need, left: Math.max(0, need - done.before), reserve: reserve,
+        doneBefore: done.before, doneToday: done.today, doneTotal: done.total, allocToday: 0, scheduled: 0
       });
     });
     active.sort(function (a, b) {
@@ -272,25 +275,299 @@
         cand.forEach(function (c, i) {
           if (alloc[i] <= 0) return;
           c.e.left -= alloc[i];
+          c.e.scheduled += alloc[i];
+          if (n === today) c.e.allocToday = alloc[i];
           day.totalHours += alloc[i] / SLOTS_PER_HOUR;
-          day.items.push({ examId: c.e.id, name: c.e.name, hours: alloc[i] / SLOTS_PER_HOUR, review: c.review });
+          day.items.push({ examId: c.e.id, name: c.e.name, hours: alloc[i] / SLOTS_PER_HOUR, review: c.review, doneHours: c.e.doneToday / SLOTS_PER_HOUR });
+        });
+      }
+      if (n === today && withProgress) {
+        // From tomorrow on, what was done today replaces today's target:
+        // unfinished target is assumed done (it is re-planned tomorrow if not),
+        // extra work shortens the rest of the plan.
+        active.forEach(function (e) {
+          e.left = Math.max(0, e.need - e.doneBefore - Math.max(e.allocToday, e.doneToday));
+          if (e.doneToday > 0 && !day.items.some(function (it) { return it.examId === e.id; })) {
+            day.items.push({ examId: e.id, name: e.name, hours: 0, review: false, doneHours: e.doneToday / SLOTS_PER_HOUR, extra: true });
+          }
         });
       }
       plan.days.push(day);
     }
 
     active.forEach(function (e) {
-      var planned = (e.need - e.left) / SLOTS_PER_HOUR;
       var short = e.left / SLOTS_PER_HOUR;
-      plan.exams.push({
+      var planned = e.scheduled / SLOTS_PER_HOUR;
+      var rec = {
         id: e.id, name: e.name, date: e.date, time: e.time, difficulty: e.difficulty,
         neededHours: e.need / SLOTS_PER_HOUR, plannedHours: planned, shortHours: short
-      });
+      };
+      if (withProgress) {
+        rec.doneHours = e.doneTotal / SLOTS_PER_HOUR;
+        rec.doneToday = e.doneToday / SLOTS_PER_HOUR;
+        rec.remainingHours = Math.max(0, e.need - e.doneTotal) / SLOTS_PER_HOUR;
+        rec.extraHours = Math.max(0, e.doneTotal - e.need) / SLOTS_PER_HOUR;
+        rec.completed = e.doneTotal >= e.need;
+        rec.ratio = e.need > 0 ? Math.min(1, e.doneTotal / e.need) : 1;
+      }
+      plan.exams.push(rec);
       plan.neededHours += e.need / SLOTS_PER_HOUR;
       plan.plannedHours += planned;
       if (short > 0) plan.shortages.push({ id: e.id, name: e.name, hours: short });
     });
     return plan;
+  }
+
+
+  // ---------- progress: { examId: { "YYYY-MM-DD": hours } } ----------
+
+  var MAX_DAY_HOURS = 24;
+
+  function slotsOf(h) { return Math.round(Number(h) * SLOTS_PER_HOUR); }
+
+  // done slots of one exam: before today, today, and everything up to today
+  function progressSlots(progress, examId, today) {
+    var out = { before: 0, today: 0, total: 0 };
+    var rows = progress && Object.prototype.hasOwnProperty.call(progress, examId) ? progress[examId] : null;
+    if (!rows || typeof rows !== 'object') return out;
+    Object.keys(rows).forEach(function (date) {
+      var d = parseDate(date);
+      var h = rows[date];
+      if (d === null || d > today || typeof h !== 'number' || !isFinite(h) || h <= 0) return;
+      var sl = slotsOf(h);
+      out.total += sl;
+      if (d === today) out.today += sl; else out.before += sl;
+    });
+    return out;
+  }
+
+  // Hours logged on one date for one exam.
+  function doneOn(progress, examId, date) {
+    var rows = progress && Object.prototype.hasOwnProperty.call(progress, examId) ? progress[examId] : null;
+    var h = rows && typeof rows[date] === 'number' ? rows[date] : 0;
+    return h > 0 ? h : 0;
+  }
+
+  // New progress object with `hours` set for (exam, date). 0 removes the entry.
+  // Whole 30 minute steps, never below 0 or above 24 per exam and day.
+  function setProgress(progress, examId, date, hours) {
+    var next = {};
+    Object.keys(progress || {}).forEach(function (id) { next[id] = Object.assign({}, progress[id]); });
+    var h = Number(hours);
+    if (!isFinite(h) || h < 0) h = 0;
+    h = Math.min(MAX_DAY_HOURS, Math.round(h * SLOTS_PER_HOUR) / SLOTS_PER_HOUR);
+    if (parseDate(date) === null || typeof examId !== 'string' || !examId) return next;
+    if (h === 0) {
+      if (next[examId]) { delete next[examId][date]; if (!Object.keys(next[examId]).length) delete next[examId]; }
+    } else {
+      next[examId] = next[examId] || {};
+      next[examId][date] = h;
+    }
+    return next;
+  }
+
+  function addProgress(progress, examId, date, delta) {
+    return setProgress(progress, examId, date, doneOn(progress, examId, date) + Number(delta));
+  }
+
+  // Drop everything that is not a valid { examId: { date: hours } }.
+  function sanitizeProgress(raw, validIds) {
+    var out = {};
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+    var count = 0;
+    Object.keys(raw).forEach(function (id) {
+      if (validIds && validIds.indexOf(id) < 0) return;
+      var rows = raw[id];
+      if (!rows || typeof rows !== 'object' || Array.isArray(rows)) return;
+      Object.keys(rows).forEach(function (date) {
+        var h = rows[date];
+        if (parseDate(date) === null || typeof h !== 'number' || !isFinite(h) || h <= 0 || h > MAX_DAY_HOURS) return;
+        if (Math.round(h * 2) !== h * 2) h = Math.round(h * 2) / 2;
+        if (h <= 0 || count >= MAX_PROGRESS_ROWS) return;
+        (out[id] = out[id] || {})[date] = h;
+        count++;
+      });
+    });
+    return out;
+  }
+
+  // Days in a row with any study logged, counted back from today. A day
+  // without logged work yet does not break the streak until it ends.
+  function streak(progress, todayStr) {
+    var today = parseDate(todayStr);
+    var res = { current: 0, best: 0 };
+    if (today === null || !progress || typeof progress !== 'object') return res;
+    var days = {};
+    Object.keys(progress).forEach(function (id) {
+      var rows = progress[id];
+      if (!rows || typeof rows !== 'object') return;
+      Object.keys(rows).forEach(function (date) {
+        var d = parseDate(date);
+        if (d !== null && d <= today && typeof rows[date] === 'number' && rows[date] > 0) days[d] = true;
+      });
+    });
+    var keys = Object.keys(days).map(Number).sort(function (a, b) { return a - b; });
+    var run = 0, prev = null;
+    keys.forEach(function (d) {
+      run = prev !== null && d === prev + 1 ? run + 1 : 1;
+      if (run > res.best) res.best = run;
+      prev = d;
+    });
+    var n = days[today] ? today : today - 1;
+    while (days[n]) { res.current++; n--; }
+    return res;
+  }
+
+  // Hours to log for a finished focus session: nearest 30 min, nothing under 15 min.
+  function focusCredit(minutes) {
+    var m = Number(minutes);
+    if (!isFinite(m) || m < 0) return 0;
+    return Math.min(4, Math.round(m / 30) / 2);
+  }
+
+  /*
+   * The living plan. Same rules as buildPlan, but hours already done
+   * (progress) are taken off what each exam needs, and planning restarts from
+   * today. Work that was planned for a past day and not done is simply still
+   * "remaining", so it is spread over the days that are left.
+   * Today's target is fixed by what was done before today, so it does not
+   * shrink while you tick it off. Extra work today shortens later days.
+   * Progress of exams that are past is ignored by the plan (it still counts
+   * for the streak).
+   */
+  function replan(exams, settings, progress, todayStr) {
+    var plan = buildPlan(exams, settings, todayStr, progress && typeof progress === 'object' ? progress : {});
+    var t = { needed: 0, done: 0, remaining: 0, extra: 0, todayTarget: 0, todayDone: 0 };
+    plan.exams.forEach(function (e) {
+      t.needed += e.neededHours;
+      t.done += Math.min(e.doneHours, e.neededHours);
+      t.remaining += e.remainingHours;
+      t.extra += e.extraHours;
+      t.todayDone += e.doneToday;
+    });
+    if (plan.days.length) {
+      plan.days[0].items.forEach(function (it) { t.todayTarget += it.hours; });
+    }
+    plan.totals = t;
+    plan.streak = streak(progress, todayStr);
+    return plan;
+  }
+
+  // ---------- exam sanitizing, backup, sample data ----------
+
+  var MAX_EXAMS = 100;
+  var MAX_CHECKLIST = 40;
+  var MAX_ITEM = 60;
+  var MAX_PROGRESS_ROWS = 20000;
+
+  function validTime(s) { return typeof s === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(s); }
+
+  // One stored/imported exam -> clean exam, or null if it cannot be used.
+  function sanitizeExam(e) {
+    if (!e || typeof e !== 'object') return null;
+    if (typeof e.id !== 'string' || !e.id || e.id.length > 60 || typeof e.name !== 'string') return null;
+    var name = normalizeName(e.name).slice(0, MAX_NAME);
+    if (!name || parseDate(e.date) === null || !DIFFICULTY[e.difficulty]) return null;
+    var list = [];
+    if (Array.isArray(e.checklist)) {
+      e.checklist.forEach(function (it) {
+        if (list.length >= MAX_CHECKLIST || !it || typeof it !== 'object') return;
+        var text = normalizeName(it.text).slice(0, MAX_ITEM);
+        if (!text || typeof it.id !== 'string' || !it.id || it.id.length > 60) return;
+        if (list.some(function (x) { return x.id === it.id; })) return;
+        list.push({ id: it.id, text: text, done: it.done === true });
+      });
+    }
+    return {
+      id: e.id, name: name, date: e.date, time: validTime(e.time) ? e.time : '',
+      difficulty: e.difficulty,
+      topics: Number.isInteger(e.topics) && e.topics >= 1 && e.topics <= MAX_TOPICS ? e.topics : null,
+      checklist: list
+    };
+  }
+
+  function buildBackup(data, now) {
+    data = data || {};
+    return {
+      app: 'exam-plan', version: 2,
+      exportedAt: (now || new Date()).toISOString(),
+      settings: { weekday: String(data.weekday == null ? '3' : data.weekday), weekend: String(data.weekend == null ? '' : data.weekend) },
+      exams: data.exams || [],
+      progress: data.progress || {}
+    };
+  }
+
+  /*
+   * Check a parsed JSON backup. Never throws.
+   * returns { error: code|null, data: { exams, progress, weekday, weekend }, dropped }
+   * Exams that cannot be used are dropped and counted, the rest is kept.
+   */
+  function validateBackup(raw) {
+    var fail = function (code) { return { error: code, data: null, dropped: 0 }; };
+    try {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return fail('backup.format');
+      if (raw.app !== 'exam-plan') return fail('backup.app');
+      if (raw.version !== 1 && raw.version !== 2) return fail('backup.version');
+      if (!Array.isArray(raw.exams)) return fail('backup.format');
+      if (raw.exams.length > MAX_EXAMS) return fail('backup.tooMany');
+      var exams = [], seen = {}, names = {}, dropped = 0;
+      raw.exams.forEach(function (e) {
+        var c = sanitizeExam(e);
+        if (!c || seen[c.id] || names[c.name.toLowerCase()]) { dropped++; return; }
+        seen[c.id] = true; names[c.name.toLowerCase()] = true;
+        exams.push(c);
+      });
+      if (!exams.length && raw.exams.length) return fail('backup.noValid');
+      var st = raw.settings && typeof raw.settings === 'object' ? raw.settings : {};
+      var wd = validateHours(typeof st.weekday === 'string' ? st.weekday : '', false);
+      var we = validateHours(typeof st.weekend === 'string' ? st.weekend : '', true);
+      return {
+        error: null, dropped: dropped,
+        data: {
+          exams: exams,
+          progress: sanitizeProgress(raw.progress, exams.map(function (x) { return x.id; })),
+          weekday: wd.error ? '3' : String(st.weekday).trim(),
+          weekend: we.error || we.value === null ? '' : String(st.weekend).trim()
+        }
+      };
+    } catch (err) {
+      return fail('backup.format');
+    }
+  }
+
+  function addDays(dateStr, n) {
+    var d = parseDate(dateStr);
+    return d === null ? null : formatDate(d + n);
+  }
+
+  /*
+   * Demo data: four exams in the coming weeks, three days of work already
+   * logged and some topics ticked, so rings and streak are not empty.
+   * names: 4 course names, topics: 4 arrays of topic titles (may be empty).
+   */
+  function sampleData(todayStr, names, topics) {
+    var rows = [
+      { off: 6, difficulty: 'hard', topics: 6, time: '10:00', ticked: 3, log: { '-3': 1.5, '-2': 2, '-1': 1.5 } },
+      { off: 9, difficulty: 'medium', topics: 5, time: '', ticked: 2, log: { '-3': 1.5, '-1': 1.5 } },
+      { off: 12, difficulty: 'hard', topics: null, time: '14:00', ticked: 1, log: { '-2': 1 } },
+      { off: 16, difficulty: 'easy', topics: null, time: '', ticked: 0, log: {} }
+    ];
+    var exams = [], progress = {};
+    rows.forEach(function (r, i) {
+      var id = 'sample-' + (i + 1);
+      var list = ((topics && topics[i]) || []).slice(0, MAX_CHECKLIST).map(function (text, k) {
+        return { id: id + '-t' + (k + 1), text: String(text), done: k < r.ticked };
+      });
+      exams.push({
+        id: id, name: String((names && names[i]) || 'Exam ' + (i + 1)), date: addDays(todayStr, r.off), time: r.time,
+        difficulty: r.difficulty, topics: r.topics, checklist: list
+      });
+      Object.keys(r.log).forEach(function (off) {
+        progress[id] = progress[id] || {};
+        progress[id][addDays(todayStr, +off)] = r.log[off];
+      });
+    });
+    return { exams: exams, progress: progress, weekday: '3', weekend: '' };
   }
 
   // ---------- .ics export ----------
@@ -394,6 +671,21 @@
     neededSlots: neededSlots,
     distribute: distribute,
     buildPlan: buildPlan,
+    replan: replan,
+    streak: streak,
+    setProgress: setProgress,
+    addProgress: addProgress,
+    doneOn: doneOn,
+    sanitizeProgress: sanitizeProgress,
+    sanitizeExam: sanitizeExam,
+    focusCredit: focusCredit,
+    buildBackup: buildBackup,
+    validateBackup: validateBackup,
+    sampleData: sampleData,
+    addDays: addDays,
+    MAX_EXAMS: MAX_EXAMS,
+    MAX_CHECKLIST: MAX_CHECKLIST,
+    MAX_ITEM: MAX_ITEM,
     toICS: toICS
   };
 });
