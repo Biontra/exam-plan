@@ -34,163 +34,180 @@
 
   <main id="main" class="wrap dash">
 
-    <div class="row-top">
-      <section id="mission" class="panel hero" data-tabs="today" aria-labelledby="mission-eyebrow">
+    <div class="row-top" id="pano">
+      <section id="mission" class="panel hero" aria-labelledby="mission-eyebrow">
         <p class="eyebrow cyan" id="mission-eyebrow">Next mission</p>
         <div id="mission-body" class="hero-body"></div>
       </section>
 
-      <section id="stats" class="panel" data-tabs="today" aria-labelledby="stats-title">
+      <section id="stats" class="panel" aria-labelledby="stats-title">
         <h2 id="stats-title" class="sr-only" data-i18n="stats.title">Summary</h2>
         <ul id="stats-list" class="tiles"></ul>
       </section>
     </div>
 
-    <section id="timeline-sec" class="panel" data-tabs="plan" aria-labelledby="timeline-title">
-      <h2 id="timeline-title" data-i18n="timeline.title">Timeline</h2>
-      <div id="timeline-body"></div>
-    </section>
+    <div class="tabbar noprint" id="tablist" role="tablist" data-i18n-aria-label="tabs.label" aria-label="Sections">
+      <button type="button" role="tab" id="tab-today" data-tab="today" aria-controls="panel-today" aria-selected="true" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span data-i18n="tab.today">Today</span></button>
+      <button type="button" role="tab" id="tab-plan" data-tab="plan" aria-controls="panel-plan" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span data-i18n="tab.plan">Plan</span></button>
+      <button type="button" role="tab" id="tab-exams" data-tab="exams" aria-controls="panel-exams" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5" width="15" height="15" rx="2"/><path d="M4.5 10h15M9 3.5v3M15 3.5v3"/></svg><span data-i18n="tab.exams">Exams</span></button>
+      <button type="button" role="tab" id="tab-settings" data-tab="settings" aria-controls="panel-settings" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h9M18 7h1M5 17h2M11 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span data-i18n="tab.settings">Settings</span></button>
+    </div>
 
-    <div class="cols">
-      <div class="col-a">
-        <section id="today-sec" class="panel" data-tabs="today" aria-labelledby="today-title">
-          <div class="sec-head">
-            <div>
-              <h2 id="today-title" data-i18n="today.title">Today</h2>
-              <p class="eyebrow" id="today-date"></p>
-            </div>
-            <span class="sec-sum" id="today-sum"></span>
+    <div id="panel-today" class="tabpanel" role="tabpanel" aria-labelledby="tab-today" tabindex="0">
+      <section id="timeline-sec" class="panel" aria-labelledby="timeline-title">
+        <h2 id="timeline-title" data-i18n="timeline.title">Timeline</h2>
+        <div id="timeline-body"></div>
+      </section>
+      <section id="today-sec" class="panel" aria-labelledby="today-title">
+        <div class="sec-head">
+          <div>
+            <h2 id="today-title" data-i18n="today.title">Today</h2>
+            <p class="eyebrow" id="today-date"></p>
           </div>
-          <p id="today-msg" class="note" hidden></p>
-          <ul id="today-list" class="blocks"></ul>
-        </section>
+          <span class="sec-sum" id="today-sum"></span>
+        </div>
+        <p id="today-msg" class="note" hidden></p>
+        <ul id="today-list" class="blocks"></ul>
+      </section>
+    </div>
 
-        <section id="plan-section" class="panel" data-tabs="plan" aria-labelledby="plan-title">
-          <div class="plan-head">
-            <h2 id="plan-title" data-i18n="plan.title">Study plan</h2>
-            <div class="row noprint">
-              <a class="btn" id="ics-link" download="exam-plan.ics" href="#" data-i18n="plan.ics">Download .ics</a>
-              <button type="button" class="btn" id="print-btn" data-i18n="plan.print">Print</button>
-            </div>
+    <div id="panel-plan" class="tabpanel" role="tabpanel" aria-labelledby="tab-plan" tabindex="0" hidden>
+      <section id="plan-section" class="panel" aria-labelledby="plan-title">
+        <div class="plan-head">
+          <h2 id="plan-title" data-i18n="plan.title">Study plan</h2>
+          <div class="row noprint">
+            <a class="btn" id="ics-link" download="exam-plan.ics" href="#" data-i18n="plan.ics">Download .ics</a>
+            <button type="button" class="btn" id="print-btn" data-i18n="plan.print">Print</button>
           </div>
-          <p class="print-only" id="print-meta"></p>
-          <p id="plan-empty" class="note" data-i18n="plan.empty">Your plan appears here once you add an exam.</p>
-          <div id="plan-body">
-            <div id="plan-live" aria-live="polite" aria-atomic="false">
-              <p id="plan-summary" class="summary"></p>
-              <div id="plan-warnings"></div>
-            </div>
-            <h3 data-i18n="plan.perExam">Hours per exam</h3>
-            <ul id="exam-hours" class="hours-list"></ul>
-            <h3 data-i18n="plan.perDay">Day by day</h3>
-            <ol id="day-list" class="days"></ol>
+        </div>
+        <p class="print-only" id="print-meta"></p>
+        <p id="plan-empty" class="note" data-i18n="plan.empty">Your plan appears here once you add an exam.</p>
+        <div id="plan-body">
+          <div id="plan-live" aria-live="polite" aria-atomic="false">
+            <p id="plan-summary" class="summary"></p>
+            <div id="plan-warnings"></div>
           </div>
-        </section>
+          <h3 data-i18n="plan.perExam">Hours per exam</h3>
+          <ul id="exam-hours" class="hours-list"></ul>
+          <h3 data-i18n="plan.perDay">Day by day</h3>
+          <ol id="day-list" class="days"></ol>
+          <div class="row noprint days-more"><button type="button" class="btn" id="days-toggle" aria-expanded="false" aria-controls="day-list" hidden></button></div>
+        </div>
+      </section>
+    </div>
+
+    <div id="panel-exams" class="tabpanel" role="tabpanel" aria-labelledby="tab-exams" tabindex="0" hidden>
+      <div class="addbar">
+        <button type="button" class="btn primary" id="add-toggle" aria-expanded="false" aria-controls="form-panel" data-i18n="exams.addToggle">+ Add exam</button>
       </div>
-
-      <div class="col-b">
-        <section id="exams-sec" class="panel" data-tabs="exams" aria-labelledby="exams-title">
-          <h2 id="exams-title" data-i18n="exams.title">Your exams</h2>
-          <div id="exams-empty" class="note">
-            <p data-i18n="exams.empty">No exams yet. Add one below, or look around with sample data.</p>
-            <button type="button" class="btn primary" id="exams-sample" data-i18n="empty.sample">Try with sample exams</button>
-          </div>
-          <ul id="exam-list" class="xcards"></ul>
-          <div id="past-wrap" hidden>
-            <h3 data-i18n="exams.past">Past exams</h3>
-            <ul id="past-list" class="xcards"></ul>
-          </div>
-        </section>
-
-        <section id="form-panel" class="panel" data-tabs="exams" aria-labelledby="form-title">
-          <h2 id="form-title" data-i18n="form.add">Add an exam</h2>
-          <form id="exam-form" novalidate autocomplete="off">
-            <div class="grid">
-              <div class="field span2">
-                <label for="f-name" data-i18n="form.name">Course name</label>
-                <input id="f-name" name="name" type="text" maxlength="80" aria-describedby="err-name" data-i18n-placeholder="form.name.ph" placeholder="e.g. Calculus II">
-                <p class="err" id="err-name"></p>
-              </div>
-              <div class="field">
-                <label for="f-date" data-i18n="form.date">Exam date</label>
-                <input id="f-date" name="date" type="date" aria-describedby="err-date">
-                <p class="err" id="err-date"></p>
-              </div>
-              <div class="field">
-                <label for="f-time"><span data-i18n="form.time">Time</span> <span class="opt" data-i18n="optional">(optional)</span></label>
-                <input id="f-time" name="time" type="time" aria-describedby="err-time">
-                <p class="err" id="err-time"></p>
-              </div>
-              <div class="field">
-                <label for="f-diff" data-i18n="form.difficulty">Difficulty</label>
-                <select id="f-diff" name="difficulty" aria-describedby="err-difficulty">
-                  <option value="easy" data-i18n="diff.easy">Easy</option>
-                  <option value="medium" data-i18n="diff.medium" selected>Medium</option>
-                  <option value="hard" data-i18n="diff.hard">Hard</option>
-                </select>
-                <p class="err" id="err-difficulty"></p>
-              </div>
-              <div class="field">
-                <label for="f-topics"><span data-i18n="form.topics">Number of topics</span> <span class="opt" data-i18n="optional">(optional)</span></label>
-                <input id="f-topics" name="topics" type="number" inputmode="numeric" min="1" max="50" step="1" aria-describedby="hint-topics err-topics">
-                <p class="hint" id="hint-topics" data-i18n="form.topics.hint">More topics means more study hours.</p>
-                <p class="err" id="err-topics"></p>
-              </div>
-            </div>
-            <div class="row">
-              <button type="submit" class="btn primary" id="submit-btn" data-i18n="form.addBtn">Add exam</button>
-              <button type="button" class="btn" id="cancel-btn" data-i18n="form.cancel" hidden>Cancel</button>
-            </div>
-          </form>
-        </section>
-
-        <section id="settings-sec" class="panel" data-tabs="settings" aria-labelledby="hours-title">
-          <h2 id="hours-title" data-i18n="hours.title">Study time per day</h2>
+      <section id="form-panel" class="panel" hidden aria-labelledby="form-title">
+        <h2 id="form-title" data-i18n="form.add">Add an exam</h2>
+        <form id="exam-form" novalidate autocomplete="off">
           <div class="grid">
-            <div class="field">
-              <label for="h-weekday" data-i18n="hours.weekday">Hours per day</label>
-              <input id="h-weekday" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekday" autocomplete="off">
-              <p class="err" id="err-weekday"></p>
+            <div class="field span2">
+              <label for="f-name" data-i18n="form.name">Course name</label>
+              <input id="f-name" name="name" type="text" maxlength="80" aria-describedby="err-name" data-i18n-placeholder="form.name.ph" placeholder="e.g. Calculus II">
+              <p class="err" id="err-name"></p>
             </div>
             <div class="field">
-              <label for="h-weekend"><span data-i18n="hours.weekend">Hours on weekends</span> <span class="opt" data-i18n="optional">(optional)</span></label>
-              <input id="h-weekend" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekend" autocomplete="off" data-i18n-placeholder="hours.weekend.ph" placeholder="same as weekdays">
-              <p class="err" id="err-weekend"></p>
+              <label for="f-date" data-i18n="form.date">Exam date</label>
+              <input id="f-date" name="date" type="date" aria-describedby="err-date">
+              <p class="err" id="err-date"></p>
+            </div>
+            <div class="field">
+              <label for="f-time"><span data-i18n="form.time">Time</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+              <input id="f-time" name="time" type="time" aria-describedby="err-time">
+              <p class="err" id="err-time"></p>
+            </div>
+            <div class="field">
+              <label for="f-diff" data-i18n="form.difficulty">Difficulty</label>
+              <select id="f-diff" name="difficulty" aria-describedby="err-difficulty">
+                <option value="easy" data-i18n="diff.easy">Easy</option>
+                <option value="medium" data-i18n="diff.medium" selected>Medium</option>
+                <option value="hard" data-i18n="diff.hard">Hard</option>
+              </select>
+              <p class="err" id="err-difficulty"></p>
+            </div>
+            <div class="field">
+              <label for="f-topics"><span data-i18n="form.topics">Number of topics</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+              <input id="f-topics" name="topics" type="number" inputmode="numeric" min="1" max="50" step="1" aria-describedby="hint-topics err-topics">
+              <p class="hint" id="hint-topics" data-i18n="form.topics.hint">More topics means more study hours.</p>
+              <p class="err" id="err-topics"></p>
             </div>
           </div>
-          <p class="hint" id="hint-hours" data-i18n="hours.hint">Use steps of 0.5, from 0 to 23.5.</p>
-
-          <h2 class="h2-gap" data-i18n="set.focus.title">Focus timer</h2>
-          <div class="field">
-            <label for="set-focus"><span data-i18n="set.focus.len">Focus length</span>: <output id="set-focus-out" for="set-focus">25 min</output></label>
-            <input id="set-focus" type="range" min="15" max="50" step="5" value="25">
-            <p class="hint" data-i18n="set.focus.hint">Breaks last 5 minutes. A finished session adds its time to the block.</p>
-          </div>
-          <label class="switch" for="set-sound">
-            <input id="set-sound" type="checkbox" checked>
-            <span data-i18n="set.sound">Play a short sound when a session ends</span>
-          </label>
-
-          <h2 class="h2-gap" data-i18n="backup.title">Back up and restore</h2>
-          <p class="hint" data-i18n="backup.hint">Save your exams, topics and logged hours as a JSON file, or load one. Nothing leaves this browser.</p>
           <div class="row">
-            <button type="button" class="btn" id="export-btn" data-i18n="backup.export">Export JSON</button>
-            <button type="button" class="btn" id="import-btn" data-i18n="backup.import">Import JSON</button>
-            <input type="file" id="import-file" accept=".json,application/json" hidden>
+            <button type="submit" class="btn primary" id="submit-btn" data-i18n="form.addBtn">Add exam</button>
+            <button type="button" class="btn" id="cancel-btn" data-i18n="form.cancel" hidden>Cancel</button>
           </div>
-          <div id="import-confirm" class="note confirm" hidden>
-            <p id="import-text"></p>
-            <div class="row">
-              <button type="button" class="btn primary" id="import-yes" data-i18n="backup.replace">Replace my data</button>
-              <button type="button" class="btn" id="import-no" data-i18n="form.cancel">Cancel</button>
-            </div>
-          </div>
-          <p id="backup-msg" class="msg" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <section id="exams-sec" class="panel" aria-labelledby="exams-title">
+        <h2 id="exams-title" data-i18n="exams.title">Your exams</h2>
+        <div id="exams-empty" class="note">
+          <p data-i18n="exams.empty">No exams yet. Add one below, or look around with sample data.</p>
+          <button type="button" class="btn primary" id="exams-sample" data-i18n="empty.sample">Try with sample exams</button>
+        </div>
+        <ul id="exam-list" class="xcards"></ul>
+        <div id="past-wrap" hidden>
+          <h3 data-i18n="exams.past">Past exams</h3>
+          <ul id="past-list" class="xcards"></ul>
+        </div>
+      </section>
+    </div>
 
-          <h2 class="h2-gap" data-i18n="guide.title">Guide</h2>
-          <button type="button" class="btn" id="guide-btn" data-i18n="guide.again">Show the quick guide again</button>
-        </section>
+    <div id="panel-settings" class="tabpanel" role="tabpanel" aria-labelledby="tab-settings" tabindex="0" hidden>
+      <section id="settings-sec" class="panel" aria-labelledby="hours-title">
+        <div class="set-cols">
+      <div class="set-col">
+        <h2 id="hours-title" data-i18n="hours.title">Study time per day</h2>
+        <div class="grid">
+          <div class="field">
+            <label for="h-weekday" data-i18n="hours.weekday">Hours per day</label>
+            <input id="h-weekday" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekday" autocomplete="off">
+            <p class="err" id="err-weekday"></p>
+          </div>
+          <div class="field">
+            <label for="h-weekend"><span data-i18n="hours.weekend">Hours on weekends</span> <span class="opt" data-i18n="optional">(optional)</span></label>
+            <input id="h-weekend" type="text" inputmode="decimal" aria-describedby="hint-hours err-weekend" autocomplete="off" data-i18n-placeholder="hours.weekend.ph" placeholder="same as weekdays">
+            <p class="err" id="err-weekend"></p>
+          </div>
+        </div>
+        <p class="hint" id="hint-hours" data-i18n="hours.hint">Use steps of 0.5, from 0 to 23.5.</p>
+
+        <h2 class="h2-gap" data-i18n="set.focus.title">Focus timer</h2>
+        <div class="field">
+          <label for="set-focus"><span data-i18n="set.focus.len">Focus length</span>: <output id="set-focus-out" for="set-focus">25 min</output></label>
+          <input id="set-focus" type="range" min="15" max="50" step="5" value="25">
+          <p class="hint" data-i18n="set.focus.hint">Breaks last 5 minutes. A finished session adds its time to the block.</p>
+        </div>
+        <label class="switch" for="set-sound">
+          <input id="set-sound" type="checkbox" checked>
+          <span data-i18n="set.sound">Play a short sound when a session ends</span>
+        </label>
+
       </div>
+      <div class="set-col">
+        <h2 data-i18n="backup.title">Back up and restore</h2>
+        <p class="hint" data-i18n="backup.hint">Save your exams, topics and logged hours as a JSON file, or load one. Nothing leaves this browser.</p>
+        <div class="row">
+          <button type="button" class="btn" id="export-btn" data-i18n="backup.export">Export JSON</button>
+          <button type="button" class="btn" id="import-btn" data-i18n="backup.import">Import JSON</button>
+          <input type="file" id="import-file" accept=".json,application/json" hidden>
+        </div>
+        <div id="import-confirm" class="note confirm" hidden>
+          <p id="import-text"></p>
+          <div class="row">
+            <button type="button" class="btn primary" id="import-yes" data-i18n="backup.replace">Replace my data</button>
+            <button type="button" class="btn" id="import-no" data-i18n="form.cancel">Cancel</button>
+          </div>
+        </div>
+        <p id="backup-msg" class="msg" role="status" aria-live="polite"></p>
+
+        <h2 class="h2-gap" data-i18n="guide.title">Guide</h2>
+        <button type="button" class="btn" id="guide-btn" data-i18n="guide.again">Show the quick guide again</button>
+      </div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -200,13 +217,6 @@
       <p id="storage-note" class="warn-text" hidden data-i18n="storage.off">Browser storage is not available, so your data will be lost when you close this page.</p>
     </div>
   </footer>
-
-  <nav class="tabbar noprint" data-i18n-aria-label="tabs.label" aria-label="Sections">
-    <button type="button" data-tab="today" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg><span data-i18n="tab.today">Today</span></button>
-    <button type="button" data-tab="plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span data-i18n="tab.plan">Plan</span></button>
-    <button type="button" data-tab="exams"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="5" width="15" height="15" rx="2"/><path d="M4.5 10h15M9 3.5v3M15 3.5v3"/></svg><span data-i18n="tab.exams">Exams</span></button>
-    <button type="button" data-tab="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h9M18 7h1M5 17h2M11 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span data-i18n="tab.settings">Settings</span></button>
-  </nav>
 
   <div id="status" class="status noprint" role="status" aria-live="polite" aria-atomic="true">
     <span id="status-text"></span>

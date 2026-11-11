@@ -83,6 +83,9 @@ export function renderToday(plan) {
 
 // ---------- plan list ----------
 
+const SHOWN_DAYS = 4; // today plus the next three
+let showAllDays = false;
+
 export function renderPlan(plan, icsSetter) {
   const section = $('plan-section');
   const summary = $('plan-summary'), warnings = $('plan-warnings');
@@ -93,6 +96,7 @@ export function renderPlan(plan, icsSetter) {
   $('plan-body').hidden = !hasExams;
   $('plan-empty').hidden = hasExams;
   const hasPlan = plan.exams.length > 0;
+  $('days-toggle').hidden = true;
   $('ics-link').hidden = !hasExams;
   $('print-btn').hidden = !hasPlan;
   $('print-meta').textContent = t('plan.printMeta', { date: fmtLong(td) });
@@ -121,11 +125,13 @@ export function renderPlan(plan, icsSetter) {
 
   plan.exams.forEach((e) => {
     const bad = e.shortHours > 0;
-    perExam.appendChild(el('li', {},
-      el('span', { text: e.name }),
+    const ratio = e.neededHours > 0 ? Math.min(1, e.doneHours / e.neededHours) : 1;
+    perExam.appendChild(el('li', { class: bad ? 'is-short' : '' },
+      el('span', { class: 'hn', text: e.name }),
       el('span', { class: 'num' + (bad ? ' bad' : ''),
         text: t('plan.examRow', { done: num(Math.min(e.doneHours, e.neededHours)), need: num(e.neededHours) }) +
-          (bad ? ' (' + t('plan.shortBadge', { h: num(e.shortHours) }) + ')' : e.completed ? ' (' + t('plan.complete') + ')' : '') })));
+          (bad ? ' (' + t('plan.shortBadge', { h: num(e.shortHours) }) + ')' : e.completed ? ' (' + t('plan.complete') + ')' : '') }),
+      el('span', { class: 'bar', 'aria-hidden': 'true' }, el('span', { class: 'bar-fill', style: 'width:' + pct(ratio) + '%' }))));
   });
 
   plan.days.forEach((d, i) => {
@@ -152,6 +158,17 @@ export function renderPlan(plan, icsSetter) {
     if (!shown.length && !d.exams.length) {
       li.appendChild(el('p', { class: 'free', text: d.capacityHours === 0 ? t('plan.noTime') : t('plan.free') }));
     }
+    if (i >= SHOWN_DAYS && !showAllDays) li.hidden = true;
     days.appendChild(li);
   });
+
+  const toggle = $('days-toggle');
+  const extra = plan.days.length > SHOWN_DAYS;
+  toggle.hidden = !extra;
+  toggle.setAttribute('aria-expanded', String(showAllDays));
+  toggle.textContent = showAllDays ? t('plan.showFewer') : t('plan.showAll', { n: plan.days.length });
+}
+
+export function initPlan(redraw) {
+  $('days-toggle').addEventListener('click', () => { showAllDays = !showAllDays; redraw(); });
 }

@@ -4,6 +4,7 @@ import { $, el, t, num, pct, fmtLong, fmtTime, dayDiff, announce, diffColor, hou
 import { ring } from './ring.js';
 
 let editingId = null;
+let formChoice = null; // true/false once the person opens or closes the form; null = automatic
 let errors = {};
 const openTopics = new Set();
 
@@ -115,6 +116,29 @@ export function renderExams(plan) {
   animatedOnce = true;
   $('exams-empty').hidden = state.exams.length > 0;
   $('past-wrap').hidden = past.length === 0;
+  syncForm();
+}
+
+// ---------- add form: closed behind one button, open when there is no exam yet ----------
+
+function formOpen() { return editingId ? true : formChoice !== null ? formChoice : state.exams.length === 0; }
+
+function syncForm() {
+  const open = formOpen();
+  $('form-panel').hidden = !open;
+  $('add-toggle').setAttribute('aria-expanded', String(open));
+}
+
+export function openForm(focus) {
+  formChoice = true;
+  syncForm();
+  if (focus) $('f-name').focus();
+}
+
+function closeForm(focusToggle) {
+  formChoice = false;
+  syncForm();
+  if (focusToggle) $('add-toggle').focus();
 }
 
 // ---------- form ----------
@@ -175,8 +199,9 @@ function onSubmit(ev) {
   }
   state.onboarded = true;
   resetForm();
+  formChoice = false;
   commit();
-  $('f-name').focus();
+  $('add-toggle').focus();
 }
 
 function startEdit(id) {
@@ -192,6 +217,7 @@ function startEdit(id) {
   $('f-topics').value = e.topics || '';
   renderFormMode();
   renderFormErrors();
+  syncForm();
   $('form-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('f-name').focus({ preventScroll: true });
 }
@@ -218,7 +244,12 @@ function deleteExam(id) {
 
 export function initExams() {
   $('exam-form').addEventListener('submit', onSubmit);
-  $('cancel-btn').addEventListener('click', () => resetForm());
+  $('cancel-btn').addEventListener('click', () => { resetForm(); closeForm(true); });
+  $('add-toggle').addEventListener('click', () => {
+    if (formOpen() && !editingId) closeForm(false);
+    else if (editingId) { /* editing keeps the form open; Cancel closes it */ $('f-name').focus(); }
+    else openForm(true);
+  });
   $('f-date').setAttribute('min', today());
   renderFormMode();
 }

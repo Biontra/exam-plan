@@ -166,7 +166,8 @@ export function renderTimeline(plan) {
       el('span', { class: 'tl-dot', 'aria-hidden': 'true' }),
       el('span', { class: 'tl-text' },
         el('strong', { text: e.name }),
-        el('span', { text: when + ' · ' + fmtShort(e.date) + (e.time ? ' ' + fmtTime(e.time) : '') + ' · ' + t('diff.' + e.difficulty) }))));
+        el('span', {}, when + ' · ' + fmtShort(e.date) + (e.time ? ' ' + fmtTime(e.time) : ''),
+          el('span', { class: 'tl-diff', text: ' · ' + t('diff.' + e.difficulty) })))));
   });
   track.appendChild(strip);
   track.appendChild(el('div', { class: 'tl-line', 'aria-hidden': 'true' }));
