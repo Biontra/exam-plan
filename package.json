@@ -1,6 +1,6 @@
 {
   "name": "exam-plan",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Exam countdown and day-by-day study plan. Static page, no build step.",
   "private": true,
   "license": "MIT",
