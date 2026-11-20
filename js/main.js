@@ -8,6 +8,8 @@ import { initSettings, syncSettingsInputs, renderHourErrors } from './settings.j
 import { initFocus, refreshFocus } from './focus.js';
 import { initGuide, openGuide, refreshGuide } from './onboarding.js';
 
+const Theme = window.ExamTheme;
+
 let icsUrl = null;
 let lastToday = today();
 let firstDraw = true;
@@ -21,8 +23,38 @@ function applyLang() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((n) => { n.setAttribute('placeholder', t(n.getAttribute('data-i18n-placeholder'))); });
   document.querySelectorAll('[data-i18n-aria-label]').forEach((n) => { n.setAttribute('aria-label', t(n.getAttribute('data-i18n-aria-label'))); });
   ['en', 'tr'].forEach((l) => { $('lang-' + l).setAttribute('aria-pressed', String(state.lang === l)); });
+  renderThemeButton();
   renderFormMode();
   syncSettingsInputs();
+}
+
+// ---------- theme ----------
+// The rule lives in js/theme.js; index.html applies it before the first paint.
+
+// The button's name says what pressing it does.
+function renderThemeButton() {
+  const label = t(Theme.current() === 'light' ? 'theme.toDark' : 'theme.toLight');
+  const b = $('theme-btn');
+  b.setAttribute('aria-label', label);
+  b.setAttribute('title', label);
+}
+
+function initTheme() {
+  const sync = (systemDark) => { Theme.apply(Theme.resolveTheme(Theme.readSaved(), systemDark)); renderThemeButton(); };
+  sync(Theme.systemPrefersDark());
+  $('theme-btn').addEventListener('click', () => {
+    const next = Theme.current() === 'light' ? 'dark' : 'light';
+    Theme.apply(next);
+    Theme.saveChoice(next);
+    renderThemeButton();
+  });
+  // the device setting changes while the page is open: follow it until the user has chosen
+  const q = Theme.systemQuery();
+  if (q) {
+    const onChange = (ev) => sync(ev.matches);
+    if (q.addEventListener) q.addEventListener('change', onChange);
+    else if (q.addListener) q.addListener(onChange);
+  }
 }
 
 // ---------- .ics ----------
@@ -164,6 +196,7 @@ function initTabs() {
 
 function init() {
   load();
+  initTheme();
   applyLang();
   initExams();
   initFocus();

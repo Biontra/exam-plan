@@ -38,3 +38,74 @@ test('browser colours exist for both themes', () => {
   assert.match(T.THEME_COLOR.light, /^#[0-9a-f]{6}$/i);
   assert.notEqual(T.THEME_COLOR.dark, T.THEME_COLOR.light);
 });
+
+// ---- the inline script in index.html must follow the same rule ----
+
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const head = html.slice(html.indexOf('<head>'), html.indexOf('</head>'));
+
+function inlineScript() {
+  const m = head.match(/<script>([\s\S]*?)<\/script>/);
+  assert.ok(m, 'index.html has an inline script in <head>');
+  return m[1];
+}
+
+function runInline(saved, device) {
+  // saved: string | null | 'THROW'; device: true | false | 'THROW' | 'ABSENT'
+  const attrs = {};
+  const meta = (content) => ({ content, setAttribute(k, v) { assert.equal(k, 'content'); this.content = v; } });
+  const metas = { 'meta[name=color-scheme]': meta('dark'), 'meta[name=theme-color]': meta('#070b14') };
+  const el = (sel) => {
+    const key = sel.replace(/"/g, '');
+    return metas[key] || null;
+  };
+  const win = {
+    document: {
+      documentElement: { setAttribute: (k, v) => { attrs[k] = v; } },
+      querySelector: el
+    },
+    localStorage: {
+      getItem: (k) => {
+        assert.equal(k, T.STORAGE_KEY);
+        if (saved === 'THROW') throw new Error('blocked');
+        return saved;
+      }
+    }
+  };
+  if (device !== 'ABSENT') {
+    win.matchMedia = (q) => {
+      assert.match(q, /prefers-color-scheme:\s*dark/);
+      if (device === 'THROW') throw new Error('nope');
+      return { matches: device };
+    };
+  }
+  const ctx = vm.createContext(Object.assign({}, win, { window: win }));
+  vm.runInContext(inlineScript(), ctx);
+  return { theme: attrs['data-theme'], scheme: metas['meta[name=color-scheme]'].content, color: metas['meta[name=theme-color]'].content };
+}
+
+test('the inline head script runs before the stylesheet', () => {
+  assert.ok(head.indexOf('<script>') > 0);
+  assert.ok(head.indexOf('<script>') < head.indexOf('href="style.css"'));
+  assert.ok(head.indexOf('<script>') > head.indexOf('name="theme-color"'), 'the meta tags exist before it runs');
+});
+
+test('the inline head script gives the same answer as resolveTheme', () => {
+  const savedCases = [null, 'light', 'dark', 'auto', 'LIGHT', '', 'THROW'];
+  const deviceCases = [true, false, 'THROW', 'ABSENT'];
+  savedCases.forEach((saved) => {
+    deviceCases.forEach((device) => {
+      const s = saved === 'THROW' ? null : saved;
+      const d = device === true || device === false ? device : undefined;
+      const want = T.resolveTheme(s, d);
+      const got = runInline(saved, device);
+      const label = 'saved=' + saved + ' device=' + device;
+      assert.equal(got.theme, want, label);
+      assert.equal(got.scheme, want, label);
+      assert.equal(got.color, T.THEME_COLOR[want], label);
+    });
+  });
+});

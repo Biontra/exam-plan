@@ -8,6 +8,18 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#070b14">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23070b14'/%3E%3Cpath d='M7 9h18v16H7z' fill='none' stroke='%233de8ff' stroke-width='2'/%3E%3Cpath d='M7 14h18' stroke='%23ffb340' stroke-width='2'/%3E%3C/svg%3E">
+  <script>
+    // Sets the theme before the first paint. Same rule as resolveTheme in js/theme.js (test/theme.test.js checks both).
+    (function () {
+      var s = null, d = true, r = document.documentElement, m;
+      try { s = localStorage.getItem('exam-plan:theme'); } catch (e) {}
+      try { d = matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) {}
+      var t = s === 'light' || s === 'dark' ? s : d === false ? 'light' : 'dark';
+      r.setAttribute('data-theme', t);
+      m = document.querySelector('meta[name="color-scheme"]'); if (m) m.setAttribute('content', t);
+      m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'light' ? '#f5f7fb' : '#070b14');
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;700&display=swap">
@@ -25,9 +37,12 @@
           <p class="eyebrow" data-i18n="brand.sub">Mission control for exam weeks</p>
         </div>
       </div>
-      <div class="lang" role="group" data-i18n-aria-label="lang.label" aria-label="Language">
-        <button type="button" id="lang-en" data-lang="en" aria-pressed="true" lang="en">EN</button>
-        <button type="button" id="lang-tr" data-lang="tr" aria-pressed="false" lang="tr">TR</button>
+      <div class="head-ctl">
+        <div class="lang" role="group" data-i18n-aria-label="lang.label" aria-label="Language">
+          <button type="button" id="lang-en" data-lang="en" aria-pressed="true" lang="en">EN</button>
+          <button type="button" id="lang-tr" data-lang="tr" aria-pressed="false" lang="tr">TR</button>
+        </div>
+        <button type="button" class="theme-btn" id="theme-btn" aria-label="Switch to light theme" title="Switch to light theme"><svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
       </div>
     </div>
   </header>
@@ -282,6 +297,7 @@
 
   <script src="plan.js"></script>
   <script src="i18n.js"></script>
+  <script src="js/theme.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
