@@ -34,7 +34,7 @@ body {
   font-family: var(--sans);
   font-size: 17px;
   line-height: 1.5;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   padding-bottom: 76px; /* room for the tab bar */
 }
 body.focus-open { overflow: hidden; }
@@ -294,7 +294,7 @@ input:focus-visible, select:focus-visible { outline-color: var(--cyan); }
 .xcard.is-past { border-style: dashed; }
 .xcard.is-past h3, .xcard.is-past .meta { color: #94a3ba; }
 .xcard-top { display: flex; gap: 14px; align-items: center; }
-.xcard-info { min-width: 0; }
+.xcard-info { min-width: 0; overflow-wrap: break-word; }
 .xcard h3 { font: 700 1.1rem var(--sans); text-transform: none; letter-spacing: 0; color: var(--text); margin: 0 0 2px; }
 .xcount { font: 600 .95rem var(--mono); color: var(--c, var(--cyan)); margin: 2px 0 0; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -386,6 +386,14 @@ input:focus-visible, select:focus-visible { outline-color: var(--cyan); }
   .tile-val { font-size: 1.05rem; }
   .tile-sub { font-size: .75rem; line-height: 1.2; }
   .panel { margin-bottom: 12px; }
+}
+
+/* narrow phones: labels and exam rings shrink so no word has to be cut */
+@media (max-width: 420px) {
+  .tile-lab { font-size: .58rem; letter-spacing: 0; }
+  .xcard-top { gap: 10px; }
+  .xcard-top .ring { width: 64px !important; height: 64px !important; }
+  .xcard h3 { font-size: 1.02rem; }
 }
 
 /* tab panels: one at a time (the hidden attribute is set by js/main.js) */
