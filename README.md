@@ -1,8 +1,10 @@
 # Exam Plan
 
-Exam Plan is a mission-control board for exam weeks. You enter your exams and the hours you can study per day. It counts down to the next exam, builds a day-by-day plan, and re-plans every time you open it, based on the hours you actually logged.
+Enter your exams and the hours you can study per day. Exam Plan counts down to the next exam and builds a day-by-day plan. It re-plans each time you open it, based on the hours you logged.
 
-Live demo: https://exam.kaanyunusemre.com
+**Live demo: https://exam.kaanyunusemre.com**
+
+Static page, no build step, no account. Data stays in your browser. English and Turkish.
 
 ## Features
 
@@ -16,7 +18,7 @@ Live demo: https://exam.kaanyunusemre.com
 - **Focus timer**: full-screen Pomodoro (focus 15 to 50 minutes, 5 minute break), pause and end, the finished time is added to the block, remaining time in the tab title, optional short sound.
 - **Backup**: export everything as a JSON file and import it again. Files are validated; a broken file shows an error and changes nothing.
 - **First run guide**: three skippable steps and a "Try with sample exams" button (the sample already has some progress).
-- English and Turkish, `.ics` calendar export, print view of the plan.
+- `.ics` calendar export and a print view of the plan.
 - On phones the board becomes four tabs: Today, Plan, Exams, Settings. On a desktop it is one board.
 
 ## How to use
@@ -58,7 +60,7 @@ node --test
 
 `test/plan.test.js` covers the plan rules, validation and `.ics` output. `test/replan.test.js` covers re-planning (missed days, extra work, finished exams, past exams), streaks, progress helpers, focus credit, backup validation and sample data. They need Node 18 or newer.
 
-The interface was checked by hand and with a scripted headless Chrome at 1280 px and 375 px: logging hours, reload, a fake date three days ahead, the focus timer with a fake clock, topics, backup import with broken files, Turkish, blocked storage, reduced motion and print.
+The interface was checked by hand and with a scripted headless Chrome at 1280 px and 375 px (and, for line breaks in headings, 320 to 430 px in both languages): logging hours, reload, a fake date three days ahead, the focus timer with a fake clock, topics, backup import with broken files, Turkish, blocked storage, reduced motion and print.
 
 ## Code layout
 
