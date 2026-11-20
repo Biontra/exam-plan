@@ -20,6 +20,7 @@ Static page, no build step, no account. Data stays in your browser. English and 
 - **First run guide**: three skippable steps and a "Try with sample exams" button (the sample already has some progress).
 - `.ics` calendar export and a print view of the plan.
 - On phones the board becomes four tabs: Today, Plan, Exams, Settings. On a desktop it is one board.
+- Light and dark theme; follows the device setting until you pick one.
 
 ## How to use
 
