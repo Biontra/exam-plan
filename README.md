@@ -59,7 +59,7 @@ Then open http://localhost:8460.
 node --test
 ```
 
-`test/plan.test.js` covers the plan rules, validation and `.ics` output. `test/replan.test.js` covers re-planning (missed days, extra work, finished exams, past exams), streaks, progress helpers, focus credit, backup validation and sample data. They need Node 18 or newer.
+`test/plan.test.js` covers the plan rules, validation and `.ics` output. `test/replan.test.js` covers re-planning (missed days, extra work, finished exams, past exams), streaks, progress helpers, focus credit, backup validation and sample data. `test/theme.test.js` covers the light/dark theme rule. `test/i18n.test.js` checks that the English and Turkish texts have the same keys and the same `{placeholders}`, and that none is empty. They need Node 18 or newer.
 
 The interface was checked by hand and with a scripted headless Chrome at 1280 px and 375 px (and, for line breaks in headings, 320 to 430 px in both languages): logging hours, reload, a fake date three days ahead, the focus timer with a fake clock, topics, backup import with broken files, Turkish, blocked storage, reduced motion and print.
 
